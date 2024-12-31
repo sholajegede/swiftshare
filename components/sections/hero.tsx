@@ -38,6 +38,9 @@ export async function Hero() {
                     Upload Now
                   </Link>
                 </Button>
+                <LogoutLink>
+                <Button>Logout</Button>
+              </LogoutLink>
               </div>
             ) : (
               <div className="mt-10 flex items-center justify-center gap-x-6">

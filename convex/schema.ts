@@ -8,11 +8,18 @@ export default defineSchema({
     username: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
-    notificationType: v.optional(v.string()),
-    communication_updates: v.optional(v.boolean()), // true or false : default = true
-    marketing_updates: v.optional(v.boolean()), // true or false
-    social_updates: v.optional(v.boolean()), // true or false
-    security_updates: v.optional(v.boolean()), // true or false : default = true
-    stripeId: v.optional(v.string()),
+    permissions: v.optional(v.string()), // create, read, update, delete
+    files: v.optional(v.array(v.id("files"))),
+  }),
+
+  files: defineTable({
+    userId: v.id("users"),
+    name: v.string(),
+    type: v.string(), //document, image, video, audio, other
+    url: v.string(),
+    storageId: v.id("_storage"),
+    extension: v.optional(v.string()),
+    size: v.optional(v.int64()),
+    users: v.optional(v.array(v.string())), //users to share to
   }),
 });

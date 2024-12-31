@@ -8,12 +8,8 @@ export const createUserKinde = internalMutation({
     username: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
-    notificationType: v.optional(v.string()),
-    communication_updates: v.optional(v.boolean()), // true or false : default = true
-    marketing_updates: v.optional(v.boolean()), // true or false
-    social_updates: v.optional(v.boolean()), // true or false
-    security_updates: v.optional(v.boolean()), // true or false : default = true
-    stripeId: v.optional(v.string())
+    permissions: v.optional(v.string()), // create, read, update, delete
+    files: v.optional(v.array(v.id("files"))),
   },
   handler: async (ctx, args) => {
     try {
@@ -23,16 +19,9 @@ export const createUserKinde = internalMutation({
         username: args.username || "",
         imageUrl: args.imageUrl,
         imageStorageId: args.imageStorageId,
-        notificationType: "all",
-        communication_updates: true,
-        marketing_updates: false,
-        social_updates: false,
-        security_updates: true,
-        stripeId: args.stripeId || ""
+        permissions: args.permissions,
+        files: args.files || []
       });
-      const updatedUser = await ctx.db.get(newUserId);
-
-      return updatedUser;
     } catch (error) {
       console.error("Error creating user:", error);
       throw new ConvexError("Failed to create user.");
@@ -59,10 +48,8 @@ export const getUserKinde = internalQuery({
 export const updateUserKinde = internalMutation({
   args: {
     kindeId: v.string(),
-    imageUrl: v.optional(v.string()),
     email: v.optional(v.string()),
-    username: v.optional(v.string()),
-    stripeId: v.optional(v.string())
+    username: v.optional(v.string())
   },
   handler: async (ctx, args) => {
     const user = await ctx.db
@@ -76,10 +63,8 @@ export const updateUserKinde = internalMutation({
 
     const updateFields = {
       ...(args.kindeId !== undefined && { kindeId: args.kindeId }),
-      ...(args.imageUrl !== undefined && { imageUrl: args.imageUrl }),
       ...(args.email !== undefined && { email: args.email }),
-      ...(args.username !== undefined && { username: args.username }),
-      ...(args.stripeId !== undefined && { stripeId: args.stripeId })
+      ...(args.username !== undefined && { username: args.username })
     };
 
     await ctx.db.patch(user._id, updateFields);
@@ -106,16 +91,12 @@ export const deleteUserKinde = internalMutation({
 export const updateUser = mutation({
   args: {
     userId: v.id("users"),
-    email: v.optional(v.string()),
+    email: v.string(),
     username: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
-    notificationType: v.optional(v.string()),
-    communication_updates: v.optional(v.boolean()), // true or false : default = true
-    marketing_updates: v.optional(v.boolean()), // true or false
-    social_updates: v.optional(v.boolean()), // true or false
-    security_updates: v.optional(v.boolean()), // true or false : default = true
-    stripeId: v.optional(v.string())
+    permissions: v.optional(v.string()), // create, read, update, delete
+    files: v.optional(v.array(v.id("files"))),
   },
   handler: async (ctx, args) => {
     const user = await ctx.db
@@ -130,14 +111,10 @@ export const updateUser = mutation({
     const updateFields = {
       ...(args.imageUrl !== undefined && { imageUrl: args.imageUrl }),
       ...(args.imageStorageId !== undefined && { imageStorageId: args.imageStorageId }),
-      ...(args.notificationType !== undefined && { notificationType: args.notificationType }),
-      ...(args.communication_updates !== undefined && { communication_updates: args.communication_updates }),
-      ...(args.marketing_updates !== undefined && { marketing_updates: args.marketing_updates }),
-      ...(args.social_updates !== undefined && { social_updates: args.social_updates }),
-      ...(args.security_updates !== undefined && { security_updates: args.security_updates }),
+      ...(args.permissions !== undefined && { permissions: args.permissions }),
       ...(args.email !== undefined && { email: args.email }),
       ...(args.username !== undefined && { username: args.username }),
-      ...(args.stripeId !== undefined && { stripeId: args.stripeId })
+      ...(args.files !== undefined && { files: args.files })
     };
 
     await ctx.db.patch(args.userId, updateFields);
@@ -146,7 +123,7 @@ export const updateUser = mutation({
 });
 
 export const getUserByKindeId = query({
-  args: { kindeId: v.string() },
+  args: { kindeId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
@@ -261,17 +238,17 @@ export const deleteUser = mutation({
   },
 });
 
+export const getAllUsers = query({
+  handler: async (ctx) => {
+    return await ctx.db.query('users').order('desc').collect()
+  },
+});
+
 export const getUrl = mutation({
   args: {
     storageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
     return await ctx.storage.getUrl(args.storageId);
-  },
-});
-
-export const getAllUsers = query({
-  handler: async (ctx) => {
-    return await ctx.db.query('users').order('desc').collect()
   },
 });

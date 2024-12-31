@@ -11,7 +11,7 @@ export function CTA() {
             Ready to get started?
           </h2>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            Join thousands of users who trust FileShare for their secure file sharing needs.
+            Join thousands of users who trust SwiftShare for their secure file sharing needs.
             Start sharing files securely today.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">

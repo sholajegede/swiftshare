@@ -49,7 +49,7 @@ export function Features() {
             Everything you need to share files securely
           </h2>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            Built with security and ease of use in mind, FileShare provides all the features
+            Built with security and ease of use in mind, SwiftShare provides all the features
             you need for secure file sharing.
           </p>
         </div>
