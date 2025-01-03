@@ -160,6 +160,37 @@ export const getUserFiles = query({
   },
 });
 
+export const getOrganizationFiles = query({
+  args: {
+    accountId: v.optional(v.string()),
+    searchText: v.optional(v.string()),
+    type: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { accountId, searchText, type } = args;
+
+    let query = ctx.db.query("files")
+      .filter((q) => q.eq(q.field("accountId"), accountId))
+      .order("desc");
+
+    if (type) {
+      query = query.filter((q) => q.eq(q.field("type"), type));
+    }
+
+    let results = await query.collect();
+
+    if (searchText) {
+      results = results.filter((file) =>
+        file?.name?.includes(searchText) ||
+        file?.type?.includes(searchText) ||
+        file?.extension?.includes(searchText)
+      );
+    }
+
+    return results;
+  },
+});
+
 export const getFilesByType = query({
   args: {
     type: v.string(),

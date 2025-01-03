@@ -22,7 +22,6 @@ import { Id } from "@/convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
-// This is sample data.
 const data = {
   files: [
     {
@@ -32,8 +31,12 @@ const data = {
       isActive: true,
       items: [
         {
-          title: "All Files",
+          title: "Organization Files",
           url: "/dashboard",
+        },
+        {
+          title: "Your Files",
+          url: "/dashboard/user",
         },
         {
           title: "Documents",

@@ -14,7 +14,7 @@ interface FileCardProps {
   extension: string;
   type: string;
   createdAt: number;
-  creator: Id<"users">;
+  creator: string;
 }
 
 interface ThumbnailProps {
@@ -84,7 +84,7 @@ interface Props {
   extension: string;
   type: string;
   createdAt: number;
-  creator: Id<"users">;
+  creator: string;
   users: [string];
   onInputChange: React.Dispatch<React.SetStateAction<string[]>>;
   onRemove: (email: string) => void;

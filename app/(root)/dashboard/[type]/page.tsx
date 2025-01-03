@@ -43,8 +43,8 @@ const Page = ({ params }: Params) => {
     kindeId: user?.id as string,
   });
 
-  const files = useQuery(api.files.getUserFiles, {
-    userId: profile?._id as Id<"users">,
+  const files = useQuery(api.files.getOrganizationFiles, {
+    accountId: profile?.orgId as string,
     type: fileType as string,
     searchText
   });
@@ -155,7 +155,7 @@ const Page = ({ params }: Params) => {
                   extension={file?.extension as string}
                   type={file?.type as string}
                   createdAt={file?._creationTime as number}
-                  creator={profile?.username as Id<"users">}
+                  userId={file.userId as Id<"users">}
                   users={file.users as [string]}
                 />
               ))

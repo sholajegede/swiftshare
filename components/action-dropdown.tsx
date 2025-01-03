@@ -26,6 +26,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Loader } from "lucide-react";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 interface FileCardProps {
   fileId: Id<"files">;
@@ -36,7 +37,7 @@ interface FileCardProps {
   extension: string;
   type: string;
   createdAt: number;
-  creator: Id<"users">;
+  creator: string;
   users: [string];
 }
 
@@ -50,8 +51,13 @@ const ActionDropdown: React.FC<FileCardProps> = ({
   createdAt,
   extension,
   users,
-  creator
+  creator,
 }) => {
+  const { getPermission } = useKindeBrowserClient();
+
+  const canEditFile = getPermission("edit:file");
+  const canDelete = getPermission("delete:file");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [action, setAction] = useState<ActionType | null>(null);
@@ -71,7 +77,7 @@ const ActionDropdown: React.FC<FileCardProps> = ({
       setIsDropdownOpen(false);
       setAction(null);
       setName(name);
-      // setEmails([]);
+      //setEmails([]);
     }, 0);
   };
 
@@ -85,21 +91,21 @@ const ActionDropdown: React.FC<FileCardProps> = ({
         renameFile({
           fileId,
           name,
-          extension
+          extension,
         }),
-      share: () => updateFileUsers({
-        fileId,
-        users: [...new Set([...users, ...emails])]
-      }),
+      share: () =>
+        updateFileUsers({
+          fileId,
+          users: [...new Set([...users, ...emails])],
+        }),
       delete: () =>
         deleteFile({
           fileId,
-          storageId
+          storageId,
         }),
     };
 
     success = !!(await actions[action.value as keyof typeof actions]());
-
 
     if (success) {
       closeAllModals();
@@ -116,7 +122,7 @@ const ActionDropdown: React.FC<FileCardProps> = ({
 
     const success = await updateFileUsers({
       fileId,
-      users: updatedUsers
+      users: updatedUsers,
     });
 
     if (success) {
@@ -144,7 +150,7 @@ const ActionDropdown: React.FC<FileCardProps> = ({
               className="text-[14px] leading-[20px] font-normal h-[52px] w-full rounded-2xl border px-4 outline-none ring-offset-transparent focus:ring-transparent focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0"
             />
           )}
-          {value === "details" && 
+          {value === "details" && (
             <FileDetails
               fileName={fileName}
               url={url}
@@ -154,7 +160,7 @@ const ActionDropdown: React.FC<FileCardProps> = ({
               size={size}
               creator={creator}
             />
-          }
+          )}
           {value === "share" && (
             <ShareInput
               fileName={fileName}
@@ -183,9 +189,7 @@ const ActionDropdown: React.FC<FileCardProps> = ({
             </Button>
             <Button onClick={handleAction} variant={"default"}>
               <p className="capitalize">{value}</p>
-              {isLoading && (
-                <Loader className="animate-spin" />
-              )}
+              {isLoading && <Loader className="animate-spin" />}
             </Button>
           </DialogFooter>
         )}
@@ -209,52 +213,62 @@ const ActionDropdown: React.FC<FileCardProps> = ({
             {fileName}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {actionsDropdownItems.map((actionItem) => (
-            <DropdownMenuItem
-              key={actionItem.value}
-              className="cursor-pointer"
-              onClick={() => {
-                setAction(actionItem);
+          {actionsDropdownItems
+            .filter((actionItem) => {
+              if (actionItem.value === "rename") {
+                return canEditFile?.isGranted;
+              }
+              if (actionItem.value === "delete") {
+                return canDelete?.isGranted;
+              }
+              return true;
+            })
+            .map((actionItem) => (
+              <DropdownMenuItem
+                key={actionItem.value}
+                className="cursor-pointer"
+                onClick={() => {
+                  setAction(actionItem);
 
-                if (
-                  ["rename", "share", "delete", "details"].includes(
-                    actionItem.value,
-                  )
-                ) {
-                  setTimeout(() => setIsModalOpen(true), 0);
-                }
-              }}
-            >
-              {actionItem.value === "download" ? (
-                <div
-                  onClick={() => {
-                    setTimeout(() => {
-                      window.open(url, "_blank");
-                    }, 0);
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <Image
-                    src={actionItem.icon}
-                    alt={actionItem.label}
-                    width={30}
-                    height={30}
-                  />
-                  {actionItem.label}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Image
-                    src={actionItem.icon}
-                    alt={actionItem.label}
-                    width={30}
-                    height={30}
-                  />
-                  {actionItem.label}
-                </div>
-              )}
-            </DropdownMenuItem>
-          ))}
+                  if (
+                    ["rename", "share", "delete", "details"].includes(
+                      actionItem.value
+                    )
+                  ) {
+                    setTimeout(() => setIsModalOpen(true), 0);
+                  }
+                }}
+              >
+                {actionItem.value === "download" ? (
+                  <div
+                    onClick={() => {
+                      setTimeout(() => {
+                        window.open(url, "_blank");
+                      }, 0);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Image
+                      src={actionItem.icon}
+                      alt={actionItem.label}
+                      width={30}
+                      height={30}
+                    />
+                    {actionItem.label}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src={actionItem.icon}
+                      alt={actionItem.label}
+                      width={30}
+                      height={30}
+                    />
+                    {actionItem.label}
+                  </div>
+                )}
+              </DropdownMenuItem>
+            ))}
         </DropdownMenuContent>
       </DropdownMenu>
 

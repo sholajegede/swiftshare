@@ -24,7 +24,7 @@ import FileUploader from "@/components/file-uploader";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 
-const Dashboard = () => {
+const UserFiles = () => {
   const { user } =
     useKindeBrowserClient();
 
@@ -39,8 +39,8 @@ const Dashboard = () => {
     kindeId: user?.id as string,
   });
 
-  const files = useQuery(api.files.getOrganizationFiles, {
-    accountId: profile?.orgId as string,
+  const files = useQuery(api.files.getUserFiles, {
+    userId: profile?._id as Id<"users">,
     searchText
   });
 
@@ -163,4 +163,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default UserFiles;

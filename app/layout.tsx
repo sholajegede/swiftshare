@@ -16,9 +16,24 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
+const defaultUrl = process.env.VERCEL_URL
+  ? `https://tryswiftshare.vercel.app`
+  : "http://localhost:3000"
+
 export const metadata: Metadata = {
+  metadataBase: new URL(defaultUrl),
   title: "SwiftShare | Effortlessly store, share, and access your files anywhere with our secure, lightning-fast cloud solution.",
   description: "The fastest and most secure way to share your files. No signup required for basic sharing. Enterprise-grade encryption for all your files.",
+  openGraph: {
+    title: "SwiftShare | Effortlessly store, share, and access your files anywhere with our secure, lightning-fast cloud solution.",
+    description: "The fastest and most secure way to share your files. No signup required for basic sharing. Enterprise-grade encryption for all your files.",
+    images: [
+      {
+        url: `${defaultUrl}/home.png`,
+        alt: "SwiftShare | Effortlessly store, share, and access your files anywhere with our secure, lightning-fast cloud solution.",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

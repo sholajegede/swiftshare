@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -10,6 +12,8 @@ import { convertFileSize } from "@/lib/utils";
 import FormattedDateTime from "@/components/formatted-date-time";
 import ActionDropdown from "@/components/action-dropdown";
 import { Id } from "@/convex/_generated/dataModel";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface FileCardProps {
   _id: Id<"files">;
@@ -20,7 +24,7 @@ interface FileCardProps {
   extension: string;
   type: string;
   createdAt: number;
-  creator: Id<"users">;
+  userId: Id<"users">;
   users: [string];
 }
 
@@ -33,15 +37,18 @@ const FileCard: React.FC<FileCardProps> = ({
   extension,
   type,
   createdAt,
-  creator,
+  userId,
   users,
 }) => {
+  const user = useQuery(api.users.getUserByConvexId, {
+    userId
+  });
   return (
     <Card>
       <CardHeader className="relative">
         <CardTitle className="flex gap-2 text-base font-normal">
           <div className="grid grid-cols-1 justify-center">
-            <p className="text-sm text-gray-600 mb-1">Uploaded By: {creator}</p>
+            <p className="text-sm text-gray-600 mb-1">Uploaded By: {user?.username}</p>
             <FormattedDateTime
               date={createdAt.toString()}
               className="text-gray-600 text-sm"
@@ -59,7 +66,7 @@ const FileCard: React.FC<FileCardProps> = ({
             createdAt={createdAt}
             extension={extension}
             users={users}
-            creator={creator}
+            creator={user?.username as string}
           />
         </div>
       </CardHeader>
