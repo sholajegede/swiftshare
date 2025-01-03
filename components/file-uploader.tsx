@@ -13,6 +13,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { FileX, Upload } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 interface Props {
   ownerId: Id<"users">;
@@ -21,6 +22,14 @@ interface Props {
 }
 
 const FileUploader = ({ ownerId, accountId, className }: Props) => {
+  const { getPermission } = useKindeBrowserClient();
+  
+  const canUploadFile = getPermission("upload:file");
+
+  if (!canUploadFile?.isGranted) {
+    return <div>Access denied</div>
+  }
+
   const { toast } = useToast();
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);

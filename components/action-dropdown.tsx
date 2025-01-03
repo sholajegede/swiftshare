@@ -55,8 +55,10 @@ const ActionDropdown: React.FC<FileCardProps> = ({
 }) => {
   const { getPermission } = useKindeBrowserClient();
 
+  const canViewFileDetails = getPermission("view:file")
   const canEditFile = getPermission("edit:file");
-  const canDelete = getPermission("delete:file");
+  const canShareFile = getPermission("share:file");
+  const canDeleteFile = getPermission("delete:file");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -218,8 +220,14 @@ const ActionDropdown: React.FC<FileCardProps> = ({
               if (actionItem.value === "rename") {
                 return canEditFile?.isGranted;
               }
+              if (actionItem.value === "details") {
+                return canViewFileDetails?.isGranted;
+              }
               if (actionItem.value === "delete") {
-                return canDelete?.isGranted;
+                return canDeleteFile?.isGranted;
+              }
+              if (actionItem.value === "share") {
+                return canShareFile?.isGranted;
               }
               return true;
             })
