@@ -1,11 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  GalleryVerticalEnd,
-  Box,
-  LayoutGrid
-} from "lucide-react";
+import { GalleryVerticalEnd, LayoutGrid } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -30,37 +26,16 @@ const data = {
       icon: LayoutGrid,
       isActive: true,
       items: [
-        {
-          title: "Organization Files",
-          url: "/dashboard",
-        },
-        {
-          title: "Your Files",
-          url: "/dashboard/user",
-        },
-        {
-          title: "Documents",
-          url: "/dashboard/documents",
-        },
-        {
-          title: "Images",
-          url: "/dashboard/images",
-        },
-        {
-          title: "Audios",
-          url: "/dashboard/audios",
-        },
-        {
-          title: "Videos",
-          url: "/dashboard/videos",
-        },
-        {
-          title: "Others",
-          url: "/dashboard/others",
-        },
+        { title: "Organization Files", url: "/dashboard" },
+        { title: "Your Files", url: "/dashboard/user" },
+        { title: "Documents", url: "/dashboard/documents" },
+        { title: "Images", url: "/dashboard/images" },
+        { title: "Audios", url: "/dashboard/audios" },
+        { title: "Videos", url: "/dashboard/videos" },
+        { title: "Others", url: "/dashboard/others" },
       ],
     },
-  ]
+  ],
 };
 
 interface Profile {
@@ -93,7 +68,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">SwiftShare</span>
           </div>
-          <ModeToggle className="ml-auto" />
+          <div className="ml-auto">
+            <ModeToggle className="ml-auto" />
+          </div>
         </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>

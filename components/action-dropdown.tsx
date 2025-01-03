@@ -142,7 +142,7 @@ const ActionDropdown: React.FC<FileCardProps> = ({
       <DialogContent className="focus:ring-0 focus:ring-offset-0 focus-visible:border-none outline-none focus-visible:outline-none focus-visible:ring-transparent focus-visible:ring-offset-0">
         <DialogHeader className="flex flex-col gap-3">
           <DialogTitle className="text-center text-muted-foreground">
-            {label}
+            {label || ""}
           </DialogTitle>
           {value === "rename" && (
             <Input

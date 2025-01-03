@@ -23,16 +23,11 @@ interface Props {
 
 const FileUploader = ({ ownerId, accountId, className }: Props) => {
   const { getPermission } = useKindeBrowserClient();
-  
-  const canUploadFile = getPermission("upload:file");
-
-  if (!canUploadFile?.isGranted) {
-    return <div>Access denied</div>
-  }
-
   const { toast } = useToast();
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  const canUploadFile = getPermission("upload:file");
 
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const { startUpload } = useUploadFiles(generateUploadUrl, {
@@ -40,7 +35,6 @@ const FileUploader = ({ ownerId, accountId, className }: Props) => {
   });
 
   const getFileUrl = useMutation(api.files.getUrl);
-
   const saveUserFile = useMutation(api.files.createFile);
 
   const uploadFile = async (
@@ -134,6 +128,10 @@ const FileUploader = ({ ownerId, accountId, className }: Props) => {
     e.stopPropagation();
     setFiles((prevFiles) => prevFiles.filter((file) => file.name !== fileName));
   };
+
+  if (!canUploadFile?.isGranted) {
+    return <div>Access denied</div>;
+  }
 
   return (
     <div {...getRootProps()} className="cursor-pointer">

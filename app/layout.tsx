@@ -16,9 +16,10 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://tryswiftshare.vercel.app`
-  : "http://localhost:3000"
+const defaultUrl =
+  process.env.NODE_ENV === "production"
+    ? `https://${process.env.VERCEL_URL || "tryswiftshare.vercel.app"}`
+    : "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
