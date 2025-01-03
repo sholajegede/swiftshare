@@ -18,33 +18,61 @@ import {
 import { useState } from "react";
 import Image from "next/image";
 import { actionsDropdownItems } from "@/constants";
-import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  deleteFile,
-  renameFile,
-  updateFileUsers,
-} from "@/lib/actions/file.actions";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FileDetails, ShareInput } from "@/components/actions-modal-content";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { Loader } from "lucide-react";
 
-const ActionDropdown = ({ file }: { file: any }) => {
+interface FileCardProps {
+  fileId: Id<"files">;
+  storageId: Id<"_storage">;
+  fileName: string;
+  url: string;
+  size: number;
+  extension: string;
+  type: string;
+  createdAt: number;
+  creator: Id<"users">;
+  users: [string];
+}
+
+const ActionDropdown: React.FC<FileCardProps> = ({
+  fileId,
+  storageId,
+  fileName,
+  url,
+  type,
+  size,
+  createdAt,
+  extension,
+  users,
+  creator
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [action, setAction] = useState<ActionType | null>(null);
-  const [name, setName] = useState(file.name);
+  const [name, setName] = useState(fileName);
   const [isLoading, setIsLoading] = useState(false);
   const [emails, setEmails] = useState<string[]>([]);
 
-  const path = usePathname();
+  const router = useRouter();
+
+  const deleteFile = useMutation(api.files.deleteFile);
+  const renameFile = useMutation(api.files.updateFile);
+  const updateFileUsers = useMutation(api.files.updateFile);
 
   const closeAllModals = () => {
-    setIsModalOpen(false);
-    setIsDropdownOpen(false);
-    setAction(null);
-    setName(file.name);
-    //   setEmails([]);
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setIsDropdownOpen(false);
+      setAction(null);
+      setName(name);
+      // setEmails([]);
+    }, 0);
   };
 
   const handleAction = async () => {
@@ -54,15 +82,29 @@ const ActionDropdown = ({ file }: { file: any }) => {
 
     const actions = {
       rename: () =>
-        renameFile({ fileId: file.$id, name, extension: file.extension, path }),
-      share: () => updateFileUsers({ fileId: file.$id, emails, path }),
+        renameFile({
+          fileId,
+          name,
+          extension
+        }),
+      share: () => updateFileUsers({
+        fileId,
+        users: [...new Set([...users, ...emails])]
+      }),
       delete: () =>
-        deleteFile({ fileId: file.$id, bucketFileId: file.bucketFileId, path }),
+        deleteFile({
+          fileId,
+          storageId
+        }),
     };
 
-    success = await actions[action.value as keyof typeof actions]();
+    success = !!(await actions[action.value as keyof typeof actions]());
 
-    if (success) closeAllModals();
+
+    if (success) {
+      closeAllModals();
+      router.refresh();
+    }
 
     setIsLoading(false);
   };
@@ -70,14 +112,17 @@ const ActionDropdown = ({ file }: { file: any }) => {
   const handleRemoveUser = async (email: string) => {
     const updatedEmails = emails.filter((e) => e !== email);
 
+    const updatedUsers = users.filter((user) => user !== email);
+
     const success = await updateFileUsers({
-      fileId: file.$id,
-      emails: updatedEmails,
-      path,
+      fileId,
+      users: updatedUsers
     });
 
-    if (success) setEmails(updatedEmails);
-    closeAllModals();
+    if (success) {
+      setEmails(updatedEmails);
+      //closeAllModals();
+    }
   };
 
   const renderDialogContent = () => {
@@ -86,9 +131,9 @@ const ActionDropdown = ({ file }: { file: any }) => {
     const { value, label } = action;
 
     return (
-      <DialogContent className="shad-dialog button">
+      <DialogContent className="focus:ring-0 focus:ring-offset-0 focus-visible:border-none outline-none focus-visible:outline-none focus-visible:ring-transparent focus-visible:ring-offset-0">
         <DialogHeader className="flex flex-col gap-3">
-          <DialogTitle className="text-center text-light-100">
+          <DialogTitle className="text-center text-muted-foreground">
             {label}
           </DialogTitle>
           {value === "rename" && (
@@ -96,38 +141,50 @@ const ActionDropdown = ({ file }: { file: any }) => {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="text-[14px] leading-[20px] font-normal h-[52px] w-full rounded-2xl border px-4 outline-none ring-offset-transparent focus:ring-transparent focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0"
             />
           )}
-          {value === "details" && <FileDetails file={file} />}
+          {value === "details" && 
+            <FileDetails
+              fileName={fileName}
+              url={url}
+              type={type}
+              extension={extension}
+              createdAt={createdAt}
+              size={size}
+              creator={creator}
+            />
+          }
           {value === "share" && (
             <ShareInput
-              file={file}
+              fileName={fileName}
+              url={url}
+              type={type}
+              extension={extension}
+              createdAt={createdAt}
+              size={size}
+              creator={creator}
+              users={users}
               onInputChange={setEmails}
               onRemove={handleRemoveUser}
             />
           )}
           {value === "delete" && (
-            <p className="delete-confirmation">
+            <p className="text-center text-muted-foreground">
               Are you sure you want to delete{` `}
-              <span className="delete-file-name">{file.name}</span>?
+              <span className="font-medium text-primary">{fileName}</span>?
             </p>
           )}
         </DialogHeader>
         {["rename", "delete", "share"].includes(value) && (
           <DialogFooter className="flex flex-col gap-3 md:flex-row">
-            <Button onClick={closeAllModals} className="modal-cancel-button">
+            <Button onClick={closeAllModals} variant="destructive">
               Cancel
             </Button>
-            <Button onClick={handleAction} className="modal-submit-button">
+            <Button onClick={handleAction} variant={"default"}>
               <p className="capitalize">{value}</p>
               {isLoading && (
-                <Image
-                  src="/assets/icons/loader.svg"
-                  alt="loader"
-                  width={24}
-                  height={24}
-                  className="animate-spin"
-                />
+                <Loader className="animate-spin" />
               )}
             </Button>
           </DialogFooter>
@@ -139,7 +196,7 @@ const ActionDropdown = ({ file }: { file: any }) => {
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-        <DropdownMenuTrigger className="shad-no-focus">
+        <DropdownMenuTrigger className="outline-none ring-offset-transparent focus:ring-transparent focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0">
           <Image
             src="/assets/icons/dots.svg"
             alt="dots"
@@ -149,13 +206,13 @@ const ActionDropdown = ({ file }: { file: any }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuLabel className="max-w-[200px] truncate">
-            {file.name}
+            {fileName}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {actionsDropdownItems.map((actionItem) => (
             <DropdownMenuItem
               key={actionItem.value}
-              className="shad-dropdown-item"
+              className="cursor-pointer"
               onClick={() => {
                 setAction(actionItem);
 
@@ -164,14 +221,17 @@ const ActionDropdown = ({ file }: { file: any }) => {
                     actionItem.value,
                   )
                 ) {
-                  setIsModalOpen(true);
+                  setTimeout(() => setIsModalOpen(true), 0);
                 }
               }}
             >
               {actionItem.value === "download" ? (
-                <Link
-                  href={file.url}
-                  download={file.name}
+                <div
+                  onClick={() => {
+                    setTimeout(() => {
+                      window.open(url, "_blank");
+                    }, 0);
+                  }}
                   className="flex items-center gap-2"
                 >
                   <Image
@@ -181,7 +241,7 @@ const ActionDropdown = ({ file }: { file: any }) => {
                     height={30}
                   />
                   {actionItem.label}
-                </Link>
+                </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <Image

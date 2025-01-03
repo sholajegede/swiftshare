@@ -1,63 +1,173 @@
-import React from "react";
+"use client";
+
+import React, { useState, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Sort from "@/components/sort";
 import FileCard from "@/components/file-card";
 import { getFileTypesParams } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useQuery } from "convex/react";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import FileUploader from "@/components/file-uploader";
 
-const Page = async ({ searchParams, params }: SearchParamProps) => {
-  const { getUser } = getKindeServerSession();
+interface Params {
+  params: {
+    type: string;
+  };
+}
 
-  const user = await getUser();
+const Page = ({ params }: Params) => {
+  const { user } = useKindeBrowserClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const type = params.type || "";
+  const fileType = getFileTypesParams(type);
+  const [searchText, setSearchText] = useState(searchParams.get("query") || "");
+
+  const sort = searchParams.get("sort") || "";
 
   const profile = useQuery(api.users.getUserByKindeId, {
     kindeId: user?.id as string,
   });
 
-  const type = ((await params)?.type as string) || "";
-  const searchText = ((await searchParams)?.query as string) || "";
-  const sort = ((await searchParams)?.sort as string) || "";
-
-  const types = getFileTypesParams(type) as FileType[];
-
   const files = useQuery(api.files.getUserFiles, {
     userId: profile?._id as Id<"users">,
-    searchText,
-    type,
+    type: fileType as string,
+    searchText
   });
 
+  const totalFileSize =
+    files?.reduce((total, file) => total + (file?.size || 0), 0) || 0;
+
+  const totalFileSizeInMB = (totalFileSize / (1024 * 1024)).toFixed(2);
+
+  const sortedFiles = useMemo(() => {
+    if (!files) return [];
+    switch (sort) {
+      case "name-asc":
+        return [...files].sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+      case "name-desc":
+        return [...files].sort((a, b) =>
+          b.name.localeCompare(a.name)
+        );
+      case "size-desc":
+        return [...files].sort((a, b) => (b.size || 0) - (a.size || 0));
+      case "size-asc":
+        return [...files].sort((a, b) => (a.size || 0) - (b.size || 0));
+      case "date-asc":
+        return [...files].sort(
+          (a, b) => a._creationTime - b._creationTime
+        );
+      case "date-desc":
+        return [...files].sort(
+          (a, b) => b._creationTime - a._creationTime
+        );
+      default:
+        return files;
+    }
+  }, [files, sort]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchText(value);
+
+    const queryParams = new URLSearchParams(searchParams.toString());
+    if (value) {
+      queryParams.set("query", value);
+    } else {
+      queryParams.delete("query");
+    }
+    router.replace(`?${queryParams.toString()}`);
+  };
+
   return (
-    <div className="page-container">
-      <section className="w-full">
-        <h1 className="h1 capitalize">{type}</h1>
-
-        <div className="total-size-section">
-          <p className="body-1">
-            Total: <span className="h5">0 MB</span>
-          </p>
-
-          <div className="sort-container">
-            <p className="body-1 hidden text-light-200 sm:block">Sort by:</p>
-
-            <Sort />
+    <SidebarInset>
+      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        <div className="flex items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="capitalize">
+                  {type}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+        <div className="flex items-center justify-center">
+          <Input
+            type="text"
+            placeholder={`Search for saved ${type}`}
+            value={searchText}
+            onChange={handleSearchChange}
+          />
+        </div>
+        <div className="ml-auto mr-4">
+          <FileUploader
+            ownerId={profile?._id as Id<"users">}
+            accountId={profile?.orgId as string}
+          />
+        </div>
+      </header>
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="min-h-[100vh] flex flex-col rounded-xl bg-muted/50 md:min-h-min p-4">
+          <div className="flex items-center text-sm">
+            <p>
+              Total File Size: <span>{totalFileSizeInMB} MB</span>{" "}
+              <span className="text-muted-foreground">|</span> Number of {type}:{" "}
+              {files?.length}
+            </p>
+            <div className="ml-auto">
+              <Sort />
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {sortedFiles && sortedFiles.length > 0 ? (
+              sortedFiles.map((file) => (
+                <FileCard
+                  key={file?._id}
+                  _id={file?._id as Id<"files">}
+                  storageId={file?.storageId as Id<"_storage">}
+                  name={file?.name as string}
+                  url={file?.url as string}
+                  size={file?.size as number}
+                  extension={file?.extension as string}
+                  type={file?.type as string}
+                  createdAt={file?._creationTime as number}
+                  creator={profile?.username as Id<"users">}
+                  users={file.users as [string]}
+                />
+              ))
+            ) : (
+              <p className="text-base text-muted-foreground">
+                No {type} available.
+              </p>
+            )}
           </div>
         </div>
-      </section>
-
-      {/* Render the files 
-      {files && files > 0 ? (
-        <section className="file-list">
-          {files.documents.map((file: any) => (
-            <FileCard key={file.$id} file={file} />
-          ))}
-        </section>
-      ) : (
-        <p className="empty-list">No files uploaded</p>
-      )}
-        */}
-    </div>
+      </div>
+    </SidebarInset>
   );
 };
 

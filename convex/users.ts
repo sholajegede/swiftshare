@@ -4,23 +4,23 @@ import { internalMutation, internalQuery, mutation, query } from "./_generated/s
 export const createUserKinde = internalMutation({
   args: {
     kindeId: v.string(),
+    orgId: v.string(),
     email: v.string(),
     username: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
     permissions: v.optional(v.string()), // create, read, update, delete
-    files: v.optional(v.array(v.id("files"))),
   },
   handler: async (ctx, args) => {
     try {
-      const newUserId = await ctx.db.insert("users", {
+      await ctx.db.insert("users", {
         kindeId: args.kindeId,
+        orgId: args.orgId,
         email: args.email,
         username: args.username || "",
         imageUrl: args.imageUrl,
         imageStorageId: args.imageStorageId,
-        permissions: args.permissions,
-        files: args.files || []
+        permissions: args.permissions
       });
     } catch (error) {
       console.error("Error creating user:", error);
@@ -48,6 +48,7 @@ export const getUserKinde = internalQuery({
 export const updateUserKinde = internalMutation({
   args: {
     kindeId: v.string(),
+    orgId: v.string(),
     email: v.optional(v.string()),
     username: v.optional(v.string())
   },
@@ -63,6 +64,7 @@ export const updateUserKinde = internalMutation({
 
     const updateFields = {
       ...(args.kindeId !== undefined && { kindeId: args.kindeId }),
+      ...(args.orgId !== undefined && { orgId: args.orgId }),
       ...(args.email !== undefined && { email: args.email }),
       ...(args.username !== undefined && { username: args.username })
     };
@@ -96,7 +98,6 @@ export const updateUser = mutation({
     imageUrl: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
     permissions: v.optional(v.string()), // create, read, update, delete
-    files: v.optional(v.array(v.id("files"))),
   },
   handler: async (ctx, args) => {
     const user = await ctx.db
@@ -113,8 +114,7 @@ export const updateUser = mutation({
       ...(args.imageStorageId !== undefined && { imageStorageId: args.imageStorageId }),
       ...(args.permissions !== undefined && { permissions: args.permissions }),
       ...(args.email !== undefined && { email: args.email }),
-      ...(args.username !== undefined && { username: args.username }),
-      ...(args.files !== undefined && { files: args.files })
+      ...(args.username !== undefined && { username: args.username })
     };
 
     await ctx.db.patch(args.userId, updateFields);

@@ -3,6 +3,9 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import Link from "next/link";
+import { RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 const plans = [
   {
@@ -52,6 +55,8 @@ const plans = [
 ];
 
 export function Pricing() {
+  const { user } = useKindeBrowserClient();
+
   return (
     <section id="pricing" className="py-24 bg-white dark:bg-gray-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,15 +123,31 @@ export function Pricing() {
                   ))}
                 </ul>
 
-                <Button
-                  className={`w-full ${
-                    plan.popular
-                      ? "bg-blue-600 hover:bg-blue-700"
-                      : "bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  Start Free Trial
-                </Button>
+                {user ? (
+                  <Link href="/dashboard" passHref>
+                    <Button
+                      className={`w-full ${
+                        plan.popular
+                          ? "bg-blue-600 hover:bg-blue-700"
+                          : "bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      Start Free Trial
+                    </Button>
+                  </Link>
+                ) : (
+                  <RegisterLink>
+                    <Button
+                      className={`w-full ${
+                        plan.popular
+                          ? "bg-blue-600 hover:bg-blue-700"
+                          : "bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      Start Free Trial
+                    </Button>
+                  </RegisterLink>
+                )}
               </div>
             </motion.div>
           ))}
@@ -134,4 +155,4 @@ export function Pricing() {
       </div>
     </section>
   );
-}
+};

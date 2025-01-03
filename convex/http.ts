@@ -40,7 +40,8 @@ const handleKindeWebhook = httpAction(async (ctx, request) => {
       await ctx.runMutation(internal.users.createUserKinde, {
         kindeId: event.data.user.id,
         email: event.data.user.email,
-        username: event.data.user.first_name || ""
+        username: event.data.user.first_name || "",
+        orgId: event.data.user.organizations[0]?.code || "",
       });
       break;
     {/** 

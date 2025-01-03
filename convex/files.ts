@@ -4,17 +4,19 @@ import { mutation, query } from './_generated/server'
 export const createFile = mutation({
   args: {
     userId: v.id("users"),
+    accountId: v.string(),
     name: v.string(),
     type: v.string(), //document, image, video, audio, other
     url: v.string(),
     storageId: v.id("_storage"),
     extension: v.optional(v.string()),
-    size: v.optional(v.int64()),
+    size: v.optional(v.number()),
     users: v.optional(v.array(v.string())) //users to share to
   },
   handler: async (ctx, args) => {
     const newFileId = await ctx.db.insert("files", {
       userId: args.userId,
+      accountId: args.accountId,
       name: args.name,
       type: args.type,
       url: args.url,
@@ -32,12 +34,13 @@ export const updateFile = mutation({
   args: {
     fileId: v.id("files"),
     userId: v.optional(v.id("users")),
+    accountId: v.optional(v.string()),
     name: v.optional(v.string()),
     type: v.optional(v.string()), //document, image, video, audio, other
     url: v.optional(v.string()),
     storageId: v.optional(v.id("_storage")),
     extension: v.optional(v.string()),
-    size: v.optional(v.int64()),
+    size: v.optional(v.number()),
     users: v.optional(v.array(v.string())) //users to share to
   },
   handler: async (ctx, args) => {
@@ -50,6 +53,9 @@ export const updateFile = mutation({
     const updateFields = {
       ...(args.userId !== undefined && {
         userId: args.userId,
+      }),
+      ...(args.accountId !== undefined && {
+        accountId: args.accountId,
       }),
       ...(args.name !== undefined && { name: args.name }),
       ...(args.type !== undefined && {
@@ -123,43 +129,21 @@ export const getSingleFileByUserId = query({
   },
 });
 
-export const getFilesByUserId = query({
-  args: {
-    userId: v.optional(v.id("users")),
-  },
-  handler: async (ctx, args) => {
-    const { userId } = args
-
-    const file = await ctx.db
-      .query("files")
-      .filter((q) => q.eq(q.field("userId"), userId))
-      .order("desc")
-      .collect()
-
-    return file
-  },
-});
-
 export const getUserFiles = query({
   args: {
     userId: v.optional(v.id("users")),
     searchText: v.optional(v.string()),
     type: v.optional(v.string()),
-    extension: v.optional(v.string())
   },
   handler: async (ctx, args) => {
-    let query = ctx.db.query("files")
-      .filter((q) => q.eq(q.field("userId"), args.userId))
-      .order("desc");
+    const { userId, searchText, type } = args;
 
-    const { searchText, type, extension } = args;
+    let query = ctx.db.query("files")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .order("desc");
 
     if (type) {
       query = query.filter((q) => q.eq(q.field("type"), type));
-    }
-
-    if (extension) {
-      query = query.filter((q) => q.eq(q.field("extension"), extension));
     }
 
     let results = await query.collect();

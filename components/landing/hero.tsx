@@ -109,25 +109,6 @@ export function Hero() {
               No credit card required
             </p>
           </motion.div>
-
-          {/* Demo Animation */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="mt-12 max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
-          >
-            <div className="p-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl m-4">
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <Upload className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Drag and drop your files here or click to browse
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </div>
     </section>

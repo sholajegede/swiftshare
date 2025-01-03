@@ -25,20 +25,19 @@ export const convertFileSize = (sizeInBytes: number, digits?: number) => {
   }
 };
 
-export const formatDateTime = (isoString: string | null | undefined) => {
-  if (!isoString) return "—";
+export const formatDateTime = (timestamp: string | number | null | undefined) => {
+  if (!timestamp) return "—";
 
-  const date = new Date(isoString);
+  const date = new Date(Number.parseFloat(timestamp.toString()));
 
-  // Get hours and adjust for 12-hour format
+  if (isNaN(date.getTime())) return "—";
+
   let hours = date.getHours();
   const minutes = date.getMinutes();
   const period = hours >= 12 ? "pm" : "am";
 
-  // Convert hours to 12-hour format
   hours = hours % 12 || 12;
 
-  // Format the time and date parts
   const time = `${hours}:${minutes.toString().padStart(2, "0")}${period}`;
   const day = date.getDate();
   const monthNames = [
@@ -66,64 +65,55 @@ export const calculatePercentage = (sizeInBytes: number) => {
   return Number(percentage.toFixed(2));
 };
 
-export const getFileType = (fileName: string) => {
-  const extension = fileName.split(".").pop()?.toLowerCase();
+export const getFileType = (fileName: string): { mimeType: string; type: string; extension: string } => {
+  const extension = fileName.split(".").pop()?.toLowerCase() || "";
 
-  if (!extension) return { type: "other", extension: "" };
+  const mimeTypes: Record<string, { mimeType: string; type: string }> = {
+    pdf: { mimeType: "application/pdf", type: "document" },
+    doc: { mimeType: "application/msword", type: "document" },
+    docx: { mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", type: "document" },
+    txt: { mimeType: "text/plain", type: "document" },
+    xls: { mimeType: "application/vnd.ms-excel", type: "document" },
+    xlsx: { mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", type: "document" },
+    csv: { mimeType: "text/csv", type: "document" },
+    rtf: { mimeType: "application/rtf", type: "document" },
+    ods: { mimeType: "application/vnd.oasis.opendocument.spreadsheet", type: "document" },
+    ppt: { mimeType: "application/vnd.ms-powerpoint", type: "document" },
+    odp: { mimeType: "application/vnd.oasis.opendocument.presentation", type: "document" },
+    md: { mimeType: "text/markdown", type: "document" },
+    html: { mimeType: "text/html", type: "document" },
+    htm: { mimeType: "text/html", type: "document" },
+    epub: { mimeType: "application/epub+zip", type: "document" },
+    pages: { mimeType: "application/x-iwork-pages-sffpages", type: "document" },
+    fig: { mimeType: "application/vnd.figma.raw+json", type: "document" },
+    psd: { mimeType: "image/vnd.adobe.photoshop", type: "image" },
+    ai: { mimeType: "application/postscript", type: "document" },
+    indd: { mimeType: "application/x-indesign", type: "document" },
+    xd: { mimeType: "application/vnd.adobe.xd", type: "document" },
+    sketch: { mimeType: "application/vnd.sketch", type: "document" },
+    afdesign: { mimeType: "application/x-affinity-designer", type: "document" },
+    afphoto: { mimeType: "application/x-affinity-photo", type: "document" },
+    jpg: { mimeType: "image/jpeg", type: "image" },
+    jpeg: { mimeType: "image/jpeg", type: "image" },
+    png: { mimeType: "image/png", type: "image" },
+    gif: { mimeType: "image/gif", type: "image" },
+    bmp: { mimeType: "image/bmp", type: "image" },
+    svg: { mimeType: "image/svg+xml", type: "image" },
+    webp: { mimeType: "image/webp", type: "image" },
+    mp4: { mimeType: "video/mp4", type: "video" },
+    avi: { mimeType: "video/x-msvideo", type: "video" },
+    mov: { mimeType: "video/quicktime", type: "video" },
+    mkv: { mimeType: "video/x-matroska", type: "video" },
+    webm: { mimeType: "video/webm", type: "video" },
+    mp3: { mimeType: "audio/mpeg", type: "audio" },
+    wav: { mimeType: "audio/wav", type: "audio" },
+    ogg: { mimeType: "audio/ogg", type: "audio" },
+    flac: { mimeType: "audio/flac", type: "audio" },
+  };
 
-  const documentExtensions = [
-    "pdf",
-    "doc",
-    "docx",
-    "txt",
-    "xls",
-    "xlsx",
-    "csv",
-    "rtf",
-    "ods",
-    "ppt",
-    "odp",
-    "md",
-    "html",
-    "htm",
-    "epub",
-    "pages",
-    "fig",
-    "psd",
-    "ai",
-    "indd",
-    "xd",
-    "sketch",
-    "afdesign",
-    "afphoto",
-    "afphoto",
-  ];
-  const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp"];
-  const videoExtensions = ["mp4", "avi", "mov", "mkv", "webm"];
-  const audioExtensions = ["mp3", "wav", "ogg", "flac"];
+  const fileType = mimeTypes[extension] || { mimeType: "application/octet-stream", type: "other" };
 
-  if (documentExtensions.includes(extension))
-    return { type: "document", extension };
-  if (imageExtensions.includes(extension)) return { type: "image", extension };
-  if (videoExtensions.includes(extension)) return { type: "video", extension };
-  if (audioExtensions.includes(extension)) return { type: "audio", extension };
-
-  return { type: "other", extension };
-};
-
-export const getFileTypesParams = (type: string) => {
-  switch (type) {
-    case "documents":
-      return ["document"];
-    case "images":
-      return ["image"];
-    case "media":
-      return ["video", "audio"];
-    case "others":
-      return ["other"];
-    default:
-      return ["document"];
-  }
+  return { ...fileType, extension };
 };
 
 export const getFileIcon = (
@@ -185,5 +175,22 @@ export const getFileIcon = (
         default:
           return "/assets/icons/file-other.svg";
       }
+  }
+};
+
+export const getFileTypesParams = (type: string) => {
+  switch (type) {
+    case "documents":
+      return "document";
+    case "images":
+      return "image";
+    case "videos":
+      return "video";
+    case "audios":
+      return "audio";
+    case "others":
+      return "other";
+    default:
+      return "document";
   }
 };
