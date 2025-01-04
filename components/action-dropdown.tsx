@@ -54,12 +54,7 @@ const ActionDropdown: React.FC<FileCardProps> = ({
   creator,
 }) => {
   const { getPermission } = useKindeBrowserClient();
-
-  const canViewFileDetails = getPermission("view:file")
-  const canEditFile = getPermission("edit:file");
-  const canShareFile = getPermission("share:file");
-  const canDeleteFile = getPermission("delete:file");
-
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [action, setAction] = useState<ActionType | null>(null);
@@ -67,7 +62,10 @@ const ActionDropdown: React.FC<FileCardProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [emails, setEmails] = useState<string[]>([]);
 
-  const router = useRouter();
+  const canViewFileDetails = getPermission("view:file")
+  const canEditFile = getPermission("edit:file");
+  const canShareFile = getPermission("share:file");
+  const canDeleteFile = getPermission("delete:file");
 
   const deleteFile = useMutation(api.files.deleteFile);
   const renameFile = useMutation(api.files.updateFile);
@@ -217,11 +215,11 @@ const ActionDropdown: React.FC<FileCardProps> = ({
           <DropdownMenuSeparator />
           {actionsDropdownItems
             .filter((actionItem) => {
-              if (actionItem.value === "rename") {
-                return canEditFile?.isGranted;
-              }
               if (actionItem.value === "details") {
                 return canViewFileDetails?.isGranted;
+              }
+              if (actionItem.value === "rename") {
+                return canEditFile?.isGranted;
               }
               if (actionItem.value === "delete") {
                 return canDeleteFile?.isGranted;

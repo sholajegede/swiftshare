@@ -140,7 +140,7 @@ const FileUploader = ({ ownerId, accountId, className }: Props) => {
         <Upload className="h-8 w-8" /> <p>Upload</p>
       </Button>
       {files.length > 0 && (
-        <ul className="fixed bottom-10 right-10 z-50 flex size-full h-fit max-w-[480px] flex-col gap-3 rounded-[20px] bg-muted/50 p-7 shadow-drop-3">
+        <ul className="fixed bottom-10 right-10 z-80 flex size-full h-fit max-w-[480px] flex-col gap-3 rounded-[20px] border text-card-foreground shadow p-7">
           <h4 className="h4 text-primary">Uploading</h4>
 
           {files.map((file, index) => {

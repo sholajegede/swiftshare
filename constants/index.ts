@@ -26,16 +26,16 @@ export const navItems = [
   },
 ];
 
-export const actionsDropdownItems = [
-  {
-    label: "Rename",
-    icon: "/assets/icons/edit.svg",
-    value: "rename",
-  },
+export const actionsDropdownItems = [ 
   {
     label: "Details",
     icon: "/assets/icons/info.svg",
     value: "details",
+  },
+  {
+    label: "Rename",
+    icon: "/assets/icons/edit.svg",
+    value: "rename",
   },
   {
     label: "Share",
@@ -60,7 +60,7 @@ export const sortTypes = [
     value: "date-desc",
   },
   {
-    label: "Created Date (oldest)",
+    label: "Date created (oldest)",
     value: "date-asc",
   },
   {
